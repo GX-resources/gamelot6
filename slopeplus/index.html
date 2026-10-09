@@ -1,60 +1,268 @@
-<!-- Slope Plus 1.1.2 by CowEggs, Compiled and bundled in this web version by CryptoDude3/Cool Duck
-slope unblocked instruction text font was also added
- -->
-<head>
-  <link rel="shortcut icon" href="w_iswx.png">
-  <meta name="description" content="Play Slope Plus, a new an improved version of the original Slope Game, with fewer glitches and extra features!">
-  <style>.webgl-content * {border: 0; margin: 0; padding: 0}
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+
+    <meta property="og:title" content="Slope Plus Online">
+    <meta property="og:description" content="Play Slope Plus unblocked, with no ads. Supports saving your progress!">
+    <meta property="og:image" content="https://lonfro.github.io/SlopePlusWeb/home/icon.png">
+    <meta property="og:url" content="https://lonfro.github.io/SlopePlusWeb/">
+    <meta property="og:type" content="website">
+
+  <!-- android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <script>
+      if ('serviceWorker' in navigator) {
+        // Use a relative path so the SW registers at the correct scope
+        // regardless of whether we're hosted at / or /SlopePlusWeb/
+        navigator.serviceWorker.register('./sw.js').then(reg=>{
+          console.log('[page] SW registered scope=', reg.scope);
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({type:'FORCE_CHECK'});
+          } else {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({type:'FORCE_CHECK'});
+              }
+            });
+          }
+        }).catch(e=>console.warn('SW reg failed',e));
+        navigator.serviceWorker.addEventListener('message', evt => {
+          if (!evt.data) return;
+          if (evt.data.type === 'VERSION_UPDATE') {
+            console.log('[page] VERSION_UPDATE new version =', evt.data.version);
+            setTimeout(()=>location.reload(),150);
+          } else if (evt.data.type === 'VERSION_INFO') {
+            console.log('[page] Active SW version =', evt.data.version);
+          }
+        });
+        window.requestSWVersion = () => {
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({type:'GET_VERSION'});
+          } else {
+            console.log('No SW controller yet.');
+          }
+        };
+      }
+    </script>
 
 
-.webgl-content .logo, .progress {position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);}
-.webgl-content .logo {background: url('progressLogo.Light.png') no-repeat center / contain; width: 154px; height: 130px;}
-.webgl-content .progress {height: 18px; width: 141px; margin-top: 90px;}
-.webgl-content .progress .empty {background: url('progressEmpty.Light.png') no-repeat right / cover; float: right; width: 100%; height: 100%; display: inline-block;}
-.webgl-content .progress .full {background: url('progressFull.Light.png') no-repeat left / cover; float: left; width: 0%; height: 100%; display: inline-block;}
+  <!-- ios -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Slope Mobile">
+    <link rel="apple-touch-icon" href="./PWA/icon.png">
 
-.webgl-content .logo.Dark {background-image: url('progressLogo.Dark.png');}
-.webgl-content .progress.Dark .empty {background-image: url('progressEmpty.Dark.png');}
-.webgl-content .progress.Dark .full {background-image: url('progressFull.Dark.png');}
 
-.webgl-content .footer {margin-top: 5px; height: 38px; line-height: 38px; font-family: Helvetica, Verdana, Arial, sans-serif; font-size: 18px;} 
-.webgl-content .footer .webgl-logo, .title, .fullscreen {height: 100%; display: inline-block; background: transparent center no-repeat;} 
-.webgl-content .footer .webgl-logo {background-image: url('webgl-logo.png'); width: 204px; float: left;}
-.webgl-content .footer .title {margin-right: 10px; float: right;}
-.webgl-content .footer .fullscreen {background-image: url('fullscreen.png'); width: 38px; float: right;}</style>
-  <script src="UnityLoader.js"></script>
-  <title>Slope Plus</title>
-  <script>
-function UnityProgress(gameInstance, progress) {
-  if (!gameInstance.Module)
-    return;
-  if (!gameInstance.logo) {
-    gameInstance.logo = document.createElement("div");
-    gameInstance.logo.className = "logo " + gameInstance.Module.splashScreenStyle;
-    gameInstance.container.appendChild(gameInstance.logo);
-  }
-  if (!gameInstance.progress) {
-    gameInstance.progress = document.createElement("div");
-    gameInstance.progress.className = "progress " + gameInstance.Module.splashScreenStyle;
-    gameInstance.progress.empty = document.createElement("div");
-    gameInstance.progress.empty.className = "empty";
-    gameInstance.progress.appendChild(gameInstance.progress.empty);
-    gameInstance.progress.full = document.createElement("div");
-    gameInstance.progress.full.className = "full";
-    gameInstance.progress.appendChild(gameInstance.progress.full);
-    gameInstance.container.appendChild(gameInstance.progress);
-  }
-  gameInstance.progress.full.style.width = (100 * progress) + "%";
-  gameInstance.progress.empty.style.width = (100 * (1 - progress)) + "%";
-  if (progress == 1)
-    gameInstance.logo.style.display = gameInstance.progress.style.display = "none";
-}
-    var gameInstance = UnityLoader.instantiate("gameContainer", "slopeplus.json", {Module: {onRuntimeInitialized: function () {UnityProgress(gameInstance, "complete")}}});
-  </script>
-</head>
+  <!-- Canonical: signal /home/ as the primary landing page for search while still serving this root to users -->
+  <link rel="canonical" href="https://lonfro.github.io/SlopePlusWeb/home/" />
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Slope Plus</title>
+  <link id="favicon-png" rel="icon" type="image/png" href="/icon.png">
+  <link id="favicon-ico" rel="shortcut icon" href="/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      // Prevent pinch zoom / gesture events
+      ['gesturestart','gesturechange','gestureend'].forEach(type=>{
+        document.addEventListener(type, e=>e.preventDefault());
+      });
+      var gameInstance;
+      function initUnity() {
+        if (gameInstance) return;
+        const container = document.getElementById('gameContainer');
+        if (!container) {
+          // If container still not present, try again at DOMContentLoaded
+          window.addEventListener('DOMContentLoaded', initUnity, { once: true });
+          return;
+        }
+        gameInstance = UnityLoader.instantiate('gameContainer', 'Build/SlopePlusWeb.json', { onProgress: UnityProgress });
+      }
+      const isAndroid = /android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        window.addEventListener('DOMContentLoaded', initUnity, { once: true });
+      } else {
+        // Try immediate; fallback to DOMContentLoaded if container not yet there
+        initUnity();
+      }
+    </script>
 
-<body style="margin: 0; overflow: hidden;">
-  <div class="webgl-content">
-    <div id="gameContainer" style="width: 100%; height: 100%; margin: 0;"></div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <script>
+      function closeWarning() {
+          const gameDiv = document.getElementById('gameContainer');
+          if (!gameDiv) return;
+          const button = gameDiv.querySelector('button');
+          if (button) {
+              button.click();
+              return true;
+          }
+          return false;
+      }
+      function resizeGameContainer() {
+        var container = document.getElementById('gameContainer');
+        container.style.width = window.innerWidth + 'px';
+        container.style.height = window.innerHeight + 'px';
+        if (typeof gameInstance !== 'undefined' && gameInstance.Module) {
+          if (gameInstance.Module.setCanvasSize) {
+            gameInstance.Module.setCanvasSize(window.innerWidth, window.innerHeight);
+          }
+        }
+      }
+      window.addEventListener('resize', resizeGameContainer);
+      window.addEventListener('DOMContentLoaded', () => {
+        resizeGameContainer();
+        const popup = document.getElementById('popup');
+        popup.classList.remove('hidden');
+
+        void popup.offsetWidth;
+
+        setTimeout(() => {
+          popup.classList.add('hidden');
+          setTimeout(() => {
+            popup.remove();
+          }, 3000);
+        }, 2000);
+
+        const interval = setInterval(() => {
+            if (closeWarning()) {
+                clearInterval(interval); // Stop once clicked
+            }
+        }, 500);
+
+        setTimeout(() => {
+          clearInterval(interval); // Stop after 10 seconds
+        }, 10000);
+        
+      });
+    </script>
+    <script src="Patches/i18n.js"></script>
+  </head>
+  <body>
+    <button id="keyboard-btn" class="keyboard-btn" type="button" aria-label="Open keyboard">
+      <img src="home/keyboard.png" alt="" style="width: 28px; height: 28px;">
+    </button>
+    <input id="keyboard-input" class="keyboard-input" type="text" style="position:absolute;opacity:0;pointer-events:none;">
+
+    <div id="keybindMenu" class="hidden">
+      <h3 data-i18n="root.settings.title">Settings</h3>
+      <div class="keybind-row">
+        <div class="keybind-btn lang-switcher-row" style="cursor:default;">
+          <span class="keybind-label" data-i18n="root.settings.language">Language:</span>
+          <div class="lang-switcher-btns">
+            <button class="lang-btn" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="zh-CN">中文</button>
+            <button class="lang-btn" data-lang="ja">日本語</button>
+            <button class="lang-btn" data-lang="de">DE</button>
+            <button class="lang-btn" data-lang="es">ES</button>
+          </div>
+        </div>
+      </div>
+      <div class="keybind-row keybind-row-pair">
+        <button id="leftKeyBtn" class="keybind-btn">
+          <span class="keybind-label" id="leftKeyValueLabel" data-i18n="root.settings.left">Left:</span>
+          <span class="keybind-value-box" id="leftKeyValueBox">
+            <span class="keybind-value" id="leftKeyValue">A</span>
+          </span>
+        </button>
+        <button id="rightKeyBtn" class="keybind-btn">
+          <span class="keybind-label" id="rightKeyValueLabel" data-i18n="root.settings.right">Right:</span>
+          <span class="keybind-value-box" id="rightKeyValueBox">
+            <span class="keybind-value" id="rightKeyValue">D</span>
+          </span>
+        </button>
+      </div>
+      <div class="keybind-row">
+        <button id="hideKeyBtn" class="keybind-btn">
+          <span class="keybind-label" id="hideKeyValueLabel" data-i18n="root.settings.hide">Hide game:</span>
+          <span class="keybind-value-box" id="hideKeyValueBox">
+            <span class="keybind-value" id="hideKeyValue">\</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="keybind-row">
+        <button id="keybindMenuKeyBtn" class="keybind-btn">
+          <span class="keybind-label" id="keybindMenuKeyValueLabel" data-i18n="root.settings.menuKey">Settings:</span>
+          <span class="keybind-value-box" id="keybindMenuKeyValueBox">
+            <span class="keybind-value" id="keybindMenuKeyValue">ShiftRight</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="keybind-row">
+        <button id="freezeGameBtn" class="keybind-btn">
+          <span class="keybind-label" id="freezeGameValueLabel" data-i18n="root.settings.pause">Pause on unfocus:</span>
+          <span class="toggle-box" id="freezeGameValueBox">
+            <span class="toggle-slider" id="freezeGameValue">O</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="keybind-row">
+        <button id="exportDataBtn" class="keybind-btn">
+          <span class="keybind-label" data-i18n="root.settings.export">Export Data</span>
+        </button>
+      </div>
+      <div class="keybind-row">
+        <button id="importDataBtn" class="keybind-btn">
+          <span class="keybind-label" data-i18n="root.settings.import">Import Data</span>
+        </button>
+      </div>
+
+      <button id="closeMenuBtn" class="close-btn" data-i18n="root.settings.close">Close</button>
   </div>
-</body>
+    <div id="popup" class="hidden">
+        <span id="bold" data-i18n="root.popup.ported">Slope Plus</span>
+        <a href="https://github.com/lonfro/SlopePlusWeb" target="_blank">
+            <span data-i18n="root.popup.github">GitHub Repo</span>
+        </a>
+        <a href="https://lonfro.github.io/slopemobile">
+            <span data-i18n="root.popup.old">Old Slope Mobile</span>
+        </a>
+        <p id="dynamicOptions"></p>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const dynamicOptions = document.getElementById("dynamicOptions");
+        let keybindMenuKey = localStorage.getItem('keybindMenuKey') || 'ShiftRight';
+        
+        let optionKey;
+        if (keybindMenuKey == 'ShiftRight') {
+          optionKey = "right-shift";
+        } else if (keybindMenuKey && keybindMenuKey.startsWith('Key')) {
+          optionKey = keybindMenuKey.replace('Key', '').toUpperCase();
+        } else {
+          optionKey = keybindMenuKey ? keybindMenuKey : "right-shift";
+        }
+        
+        dynamicOptions.innerHTML = `
+          <span data-i18n="root.popup.press">Press</span> ${optionKey} <span data-i18n="root.popup.forOptions">for options</span>
+        `;
+        if (window.applyI18n) window.applyI18n();
+      });
+    </script>
+    <div class="webgl-content">
+      <div id="gameContainer"></div>
+    </div>
+
+    <div class="hider" style="display: none; background-color: white; height:100vh; width:100vw; position: fixed; top: 0; left: 0; z-index: 9999;">
+      <h1 style="margin-left: 10px; font-size: 25px; font-family:Arial, Helvetica, sans-serif; font-weight:bold;">
+        404 not found
+      </h1>
+    </div>
+
+    
+
+    <script src="Patches/mobile.js">     </script>
+    <script src="Patches/import.js">       </script>
+    <script src="Patches/settings.js">     </script>
+    <script src="Patches/freezegame.js">     </script> // btw freezegame relies on variables in settings
+    
+    <script></script>
+    
+  </body>
+</html>
