@@ -61,23 +61,61 @@
   <link id="favicon-png" rel="icon" type="image/png" href="/icon.png">
   <link id="favicon-ico" rel="shortcut icon" href="/TemplateData/favicon.ico">
     <link rel="stylesheet" href="style.css">
-    <script src="TemplateData/UnityProgress.js"></script>
-    <script src="Build/UnityLoader.js"></script>
     <script>
       // Prevent pinch zoom / gesture events
       ['gesturestart','gesturechange','gestureend'].forEach(type=>{
         document.addEventListener(type, e=>e.preventDefault());
       });
       var gameInstance;
+      var unityBooting = false;
+      const UNITY_BASES = [
+        "",
+        "https://cdn.jsdelivr.net/gh/GX-resources/gamelot6@main/slopeplus/",
+        "https://raw.githubusercontent.com/GX-resources/gamelot6/main/slopeplus/"
+      ];
+      async function getBlob(path) {
+        for (const base of UNITY_BASES) {
+          try {
+            const r = await fetch(base + path);
+            if (r.ok) return await r.blob();
+          } catch (e) {}
+        }
+        throw new Error("failed to load " + path);
+      }
+      function loadScriptBlob(blob) {
+        return new Promise((ok, no) => {
+          const s = document.createElement("script");
+          s.src = URL.createObjectURL(blob);
+          s.onload = ok;
+          s.onerror = no;
+          document.head.appendChild(s);
+        });
+      }
+      async function loadUnity() {
+        const [loader, progress, jsonBlob] = await Promise.all([
+          getBlob("Build/UnityLoader.js"),
+          getBlob("TemplateData/UnityProgress.js"),
+          getBlob("Build/SlopePlusWeb.json")
+        ]);
+        const cfg = JSON.parse(await jsonBlob.text());
+        const keys = ["dataUrl", "wasmCodeUrl", "wasmFrameworkUrl"];
+        const blobs = await Promise.all(keys.map(k => getBlob("Build/" + cfg[k])));
+        keys.forEach((k, i) => cfg[k] = URL.createObjectURL(blobs[i]));
+        await loadScriptBlob(loader);
+        await loadScriptBlob(progress);
+        const jsonUrl = URL.createObjectURL(new Blob([JSON.stringify(cfg)], { type: "application/json" }));
+        gameInstance = UnityLoader.instantiate('gameContainer', jsonUrl, { onProgress: UnityProgress });
+      }
       function initUnity() {
-        if (gameInstance) return;
+        if (unityBooting) return;
         const container = document.getElementById('gameContainer');
         if (!container) {
           // If container still not present, try again at DOMContentLoaded
           window.addEventListener('DOMContentLoaded', initUnity, { once: true });
           return;
         }
-        gameInstance = UnityLoader.instantiate('gameContainer', 'Build/SlopePlusWeb.json', { onProgress: UnityProgress });
+        unityBooting = true;
+        loadUnity();
       }
       const isAndroid = /android/i.test(navigator.userAgent);
       if (isAndroid) {
