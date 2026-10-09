@@ -101,7 +101,11 @@
         const keys = ["dataUrl", "wasmCodeUrl", "wasmFrameworkUrl"];
         const blobs = await Promise.all(keys.map(k => getBlob("Build/" + cfg[k])));
         keys.forEach((k, i) => cfg[k] = URL.createObjectURL(blobs[i]));
-        await loadScriptBlob(loader);
+        // unity only treats http/https/ftp/file urls as absolute and would
+        // prefix our blob: urls with the json's folder, so teach it blob:
+        let loaderText = await loader.text();
+        loaderText = loaderText.replace("/(http|https|ftp|file):\\/\\//", "/^blob:|(http|https|ftp|file):\\/\\//");
+        await loadScriptBlob(new Blob([loaderText], { type: "text/javascript" }));
         await loadScriptBlob(progress);
         const jsonUrl = URL.createObjectURL(new Blob([JSON.stringify(cfg)], { type: "application/json" }));
         gameInstance = UnityLoader.instantiate('gameContainer', jsonUrl, { onProgress: UnityProgress });
