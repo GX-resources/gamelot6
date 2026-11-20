@@ -440,6 +440,10 @@ function allowedOriginForRequest(env: Env, request: Request): string | null {
     return originHeader ?? '*';
   }
 
+  if (originHeader === 'null') {
+    return 'null';
+  }
+
   const host = getHostFromOrigin(originHeader);
   if (!host || !ALLOWED_SITE_PATHS[host]) {
     return null;
@@ -474,6 +478,10 @@ function allowedOriginForPreflight(env: Env, request: Request): string | null {
     devMatches(embedHint, devAllowlist)
   ) {
     return originHeader ?? '*';
+  }
+
+  if (originHeader === 'null') {
+    return 'null';
   }
 
   const host = getHostFromOrigin(originHeader);
