@@ -1,3 +1,15 @@
+(function(){try{var JD=/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^\/]+)\/([^\/@]+)(?:@([^\/]+))?\/(.+)$/i;
+function toRaw(u){try{var m=JD.exec(new URL(String(u),document.baseURI).href);return m?"https://raw.githubusercontent.com/"+m[1]+"/"+m[2]+"/"+(m[3]||"main")+"/"+m[4]:null}catch(e){return null}}
+var D=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,"src");
+if(D&&D.set)Object.defineProperty(HTMLImageElement.prototype,"src",{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){var r=toRaw(v),im=this;if(r&&!im.__gxI){im.__gxI=1;im.addEventListener("error",function(){if(im.__gxJ)return;im.__gxJ=1;D.set.call(im,r)})}D.set.call(this,v)}})}catch(e){}})();
+if(!(window.crypto&&window.crypto.subtle)){(function(){var K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function sha(d){var n=d.length,l=((n+9+63)>>6)<<6,m=new Uint8Array(l);m.set(d);m[n]=128;var v=new DataView(m.buffer);v.setUint32(l-8,Math.floor(n/536870912));v.setUint32(l-4,(n<<3)>>>0);var H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]),W=new Uint32Array(64);function R(x,k){return(x>>>k)|(x<<(32-k))}
+for(var o=0;o<l;o+=64){for(var i=0;i<16;i++)W[i]=v.getUint32(o+i*4);for(i=16;i<64;i++){var a=R(W[i-15],7)^R(W[i-15],18)^(W[i-15]>>>3),b=R(W[i-2],17)^R(W[i-2],19)^(W[i-2]>>>10);W[i]=(W[i-16]+a+W[i-7]+b)|0}
+var A=H[0],B=H[1],C=H[2],D=H[3],E=H[4],F=H[5],G=H[6],J=H[7];for(i=0;i<64;i++){var t1=(J+(R(E,6)^R(E,11)^R(E,25))+((E&F)^(~E&G))+K[i]+W[i])|0,t2=((R(A,2)^R(A,13)^R(A,22))+((A&B)^(A&C)^(B&C)))|0;J=G;G=F;F=E;E=(D+t1)|0;D=C;C=B;B=A;A=(t1+t2)|0}
+H[0]+=A;H[1]+=B;H[2]+=C;H[3]+=D;H[4]+=E;H[5]+=F;H[6]+=G;H[7]+=J}
+return H}
+var s={digest:function(alg,data){var u=data instanceof ArrayBuffer?new Uint8Array(data):new Uint8Array(data.buffer,data.byteOffset,data.byteLength),H=sha(u),out=new DataView(new ArrayBuffer(32));for(var i=0;i<8;i++)out.setUint32(i*4,H[i]);return Promise.resolve(out.buffer)}};
+try{Object.defineProperty(window.crypto,"subtle",{value:s,configurable:true})}catch(e){window.crypto={getRandomValues:function(a){return window.__c.getRandomValues(a)},subtle:s}}})()}
 ( () => {
     var e, t = {
         77: (e, t, n) => {
@@ -44979,7 +44991,9 @@
                 gz.set(this, !1),
                 vz.set(this, 0),
                 wz.set(this, new Map),
-                bz(this, mz, new Worker("simulation_worker.bundle.js"), "f"),
+                bz(this, mz, (function(){var b=new URL("./",document.baseURI).href,m=/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^\/]+)\/([^\/@]+)(?:@([^\/]+))?\/(.*)$/i.exec(b),rb=m?"https://raw.githubusercontent.com/"+m[1]+"/"+m[2]+"/"+(m[3]||"main")+"/"+m[4]:b;
+function g(f){var t=null;[b,rb].some(function(u){try{var x=new XMLHttpRequest();x.open("GET",u+f,false);x.send();if(x.status===200){t=x.responseText;return true}}catch(e){}return false});if(t===null)throw new Error("Failed to load "+f);return t}
+var w=g("simulation_worker.bundle.js"),a=g("lib/ammo.wasm.js"),c=w.replace('importScripts("lib/ammo.wasm.js");',function(){return a+"\n;"}).replace("Ammo().then(","Ammo({locateFile:function(f){return '"+rb+"'+f}}).then(");return new Worker(URL.createObjectURL(new Blob([c],{type:"text/javascript"})))})(), "f"),
                 null != t && null != n ? (bz(this, fz, t, "f"),
                 n.hasLoaded() ? Az(this, pz, "m", yz).call(this, e, t) : n.addCompleteListener(( () => {
                     Az(this, pz, "m", yz).call(this, e, t)
