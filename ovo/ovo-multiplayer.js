@@ -1,1 +1,1 @@
-No Content: https://www.coolmathgames.com/sites/default/files/public_games/40021/ovo-multiplayer.js
+// ovo-multiplayer.js: original not available (download returned "No Content"). Game guards on globalThis.ovoMultiplayerClient, so this is a safe no-op.
