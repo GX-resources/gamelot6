@@ -1,28 +1,15 @@
-// Reassembles the ROM from the part files (fetched from raw.githubusercontent.com and run via blob script),
+// Reassembles the ROM from the part files (loaded via <script> tags, so it works on file://),
 // then starts EmulatorJS exactly like the codehelper-generated pages do.
 (function () {
   var G = window.GAME, status = document.getElementById("status");
   function say(t) { status.textContent = t; }
 
-  // set this to the raw.githubusercontent.com folder holding the part files (trailing slash).
-  // leave "" to load from the same folder as the page.
-  var RAW = G.base || "";
-
-  // raw.githubusercontent.com sends text/plain + nosniff, so a plain <script src> is blocked.
-  // fetch the text and run it from a blob with a javascript mime type instead.
   function loadScript(src) {
-    return fetch(src).then(function (r) {
-      if (!r.ok) throw new Error("Could not load " + src + " (HTTP " + r.status + ")");
-      return r.blob();
-    }).then(function (b) {
-      var url = URL.createObjectURL(new Blob([b], { type: "text/javascript" }));
-      return new Promise(function (res, rej) {
-        var s = document.createElement("script");
-        s.src = url;
-        s.onload = function () { URL.revokeObjectURL(url); res(); };
-        s.onerror = function () { rej(new Error("Could not run " + src)); };
-        document.head.appendChild(s);
-      });
+    return new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      s.src = src; s.onload = res;
+      s.onerror = function () { rej(new Error("Could not load " + src + " (is it in the same folder?)")); };
+      document.head.appendChild(s);
     });
   }
 
@@ -47,7 +34,7 @@
       var pieces = [];
       for (var k = 1; k <= G.parts; k++) {
         say("Loading part " + k + " of " + G.parts + "...");
-        await loadScript(RAW + G.name + ".part" + k + ".js");
+        await loadScript(G.name + ".part" + k + ".js");
         say("Decoding part " + k + " of " + G.parts + "...");
         await new Promise(function (r) { setTimeout(r, 30); });
         var u8 = decodeChunks(window.__parts[G.name][k - 1]);
@@ -59,6 +46,8 @@
       window.EJS_core = G.core;
       window.EJS_color = "#0064ff";
       window.EJS_startOnLoaded = true;
+      window.EJS_gameID = G.name;
+      window.EJS_disableDatabases = true; // IndexedDB is blocked in srcdoc/data-uri frames
       window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       window.EJS_gameUrl = new Blob(pieces);
       var s = document.createElement("script");
