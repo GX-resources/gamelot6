@@ -4,12 +4,41 @@
   var G = window.GAME, status = document.getElementById("status");
   function say(t) { status.textContent = t; }
 
-  function loadScript(src) {
+  // original path: plain <script src> (relative to the page, goes through the wrapper hook)
+  function loadScriptTag(src) {
     return new Promise(function (res, rej) {
       var s = document.createElement("script");
       s.src = src; s.onload = res;
       s.onerror = function () { rej(new Error("Could not load " + src + " (is it in the same folder?)")); };
       document.head.appendChild(s);
+    });
+  }
+
+  // raw.githubusercontent.com is text/plain + nosniff, so <script src> is blocked there:
+  // fetch it and run it from a blob with a javascript mime type instead.
+  function loadScriptRaw(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status + " for " + url);
+      return r.blob();
+    }).then(function (b) {
+      var u = URL.createObjectURL(new Blob([b], { type: "text/javascript" }));
+      return new Promise(function (res, rej) {
+        var s = document.createElement("script");
+        s.src = u;
+        s.onload = function () { URL.revokeObjectURL(u); res(); };
+        s.onerror = function () { rej(new Error("Could not run " + url)); };
+        document.head.appendChild(s);
+      });
+    });
+  }
+
+  // G.base = raw.githubusercontent.com folder (trailing slash). if set, raw is tried first
+  // and jsDelivr is never touched; if raw fails or base is unset it uses the original path.
+  function loadScript(file) {
+    if (!G.base) return loadScriptTag(file);
+    return loadScriptRaw(G.base + file).catch(function (e) {
+      console.warn("[raw direct] failed, falling back:", e.message);
+      return loadScriptTag(file);
     });
   }
 
